@@ -1,0 +1,25 @@
+{
+  "token": [
+    {
+      "key": ""
+    }
+  ],
+  "files_path": [
+    {
+      "FFmpegPCMAudio": ""
+    }
+  ],
+  "logs_path": [
+    {
+      "log": ""
+    }
+  ],
+  "spotify": [
+    {
+      "username": "",
+      "clientID": "",
+      "clientSecret": "",
+      "redirect_url": ""
+    }
+  ]
+}
