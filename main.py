@@ -206,4 +206,10 @@ async def ssearch(ctx, *name):
     await SpotifyPlay.ssearch(ctx, *name)
 
 
+@bot.command()
+@commands.cooldown(1, 2, commands.BucketType.user)
+async def splay(ctx, *name):
+    await SpotifyPlay.splay(ctx, *name)
+
+
 bot.run(key)

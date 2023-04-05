@@ -1,25 +1,25 @@
 {
   "token": [
     {
-      "key": ""
+      "key": "OTE0NDk4NTU2NjkyNDI2ODMz.GvDd9q.fXc72GjJP9FPpP3JBGYd_V1n1sc1teJmO2WBDc"
     }
   ],
   "files_path": [
     {
-      "FFmpegPCMAudio": ""
+      "FFmpegPCMAudio": "C:\\Users\\gamer\\PycharmProjects\\CobainBot2\\ffmpeg.exe"
     }
   ],
   "logs_path": [
     {
-      "log": ""
+      "log": "C:\\Users\\gamer\\PycharmProjects\\CobainBot2\\logs"
     }
   ],
   "spotify": [
     {
-      "username": "",
-      "clientID": "",
-      "clientSecret": "",
-      "redirect_url": ""
+      "username": "nazar067",
+      "clientID": "39ff834c6220412baa2514d21a169992",
+      "clientSecret": "e5780a3283b6478eb1fa7449188d1aba",
+      "redirect_url": "http://google.com/callback/"
     }
   ]
 }

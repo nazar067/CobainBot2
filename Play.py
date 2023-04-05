@@ -46,7 +46,7 @@ async def search_url(ctx, url, vc):
             info = ydl.extract_info(url, download=False)
     except Exception as e:
         await ctx.send("По вашему запросу ничего не найдено")
-        await ctx.send(e)
+        #await ctx.send(e)
         return
     Url = info['url']
     vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **FFMPEG_OPTIONS))
