@@ -21,5 +21,10 @@
       "clientSecret": "",
       "redirect_url": ""
     }
+  ],
+  "chatGPT": [
+    {
+      "API_key": ""
+    }
   ]
 }

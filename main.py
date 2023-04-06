@@ -2,9 +2,12 @@ import asyncio
 
 import discord
 import json
+
+import openai
 import youtube_dl
 from discord.ext import commands
 
+import ChatGPT
 import DevCommands
 import Play
 import Replay
@@ -211,5 +214,18 @@ async def ssearch(ctx, *name):
 async def splay(ctx, *name):
     await SpotifyPlay.splay(ctx, *name)
 
+
+@bot.command()
+@commands.cooldown(1, 2, commands.BucketType.user)
+async def chat(ctx, *question):
+    if question:
+        msg = "ssearch"
+        for i in question:
+            msg = str(msg) + " " + i
+        await DevCommands.write_logs(ctx, msg)
+        await ctx.send("Обрабатываю запрос")
+        await ChatGPT.chat(ctx, *question)
+    else:
+        await ctx.send("Напишите, что хотите спросить у бота")
 
 bot.run(key)
