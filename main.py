@@ -27,6 +27,7 @@ bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)
 @bot.event
 async def on_ready():
     print("Cobain comeback")
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game("Integration with ChatGPT"))
 
 
 @bot.event

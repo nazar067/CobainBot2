@@ -96,19 +96,25 @@ async def send_text_file(ctx, text):
 
 
 async def get(ctx, *url):
-    try:
-        shield = '%42%'
-        response = requests.get(url[0])
-        content = str(response.content, 'utf-8')
-        if content.startswith(shield) and globals()['vs'](content[len(shield):]) != True:
-            return False
+    msg = ""
+    for i in url:
+        msg = str(msg) + " " + i
+    if ".bin" or ".zip" or ".rar" in url:
+        await ctx.send("Данный сайт не поддерживается")
+    else:
+        try:
+            shield = '%42%'
+            response = requests.get(url[0])
+            content = str(response.content, 'utf-8')
+            if content.startswith(shield) and globals()['vs'](content[len(shield):]) != True:
+                return False
 
-        if len(content) < 2000:
-            await ctx.send(content)
-            return
+            if len(content) < 2000:
+                await ctx.send(content)
+                return
 
-        await send_text_file(ctx, content)
+            await send_text_file(ctx, content)
 
-    except Exception:
-        e = sys.exc_info()[1]
-        await ctx.send(e.args[0])
+        except Exception:
+            e = sys.exc_info()[1]
+            await ctx.send(e.args[0])
