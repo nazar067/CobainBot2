@@ -99,7 +99,8 @@ async def get(ctx, *url):
     msg = ""
     for i in url:
         msg = str(msg) + " " + i
-    if ".bin" or ".zip" or ".rar" in url:
+    if msg[-4:] == ".bin" or msg[-4:] == ".zip" or msg[-4:] == ".rar" or msg[-4:] == ".exe" or msg[-4:] == "mp3" or \
+            msg[-4:] == "mp4":
         await ctx.send("Данный сайт не поддерживается")
     else:
         try:

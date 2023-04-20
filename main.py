@@ -12,6 +12,7 @@ import DevCommands
 import Play
 import Replay
 import SpotifyPlay
+import SteamCommands
 import SupportCommands
 import TrollCommands
 
@@ -228,5 +229,19 @@ async def chat(ctx, *question):
         await ChatGPT.chat(ctx, *question)
     else:
         await ctx.send("Напишите, что хотите спросить у бота")
+
+
+@bot.command()
+@commands.cooldown(1, 2, commands.BucketType.user)
+async def game(ctx, *name):
+    if name:
+        msg = "game"
+        for i in name:
+            msg = str(msg) + " " + i
+        await DevCommands.write_logs(ctx, msg)
+        await ctx.send("Ищу игру")
+        await SteamCommands.game(ctx, *name)
+    else:
+        await ctx.send("Напишите название игры")
 
 bot.run(key)

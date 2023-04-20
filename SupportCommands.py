@@ -37,6 +37,10 @@ async def help(ctx):
     embed.add_field(name="Spotify",
                     value="$ssearch - команда чтобы получить ссылку на песню в Spotify. $ssearch название песни\n"
                     )
+    embed.add_field(name="Steam",
+                    value="$game - команда чтобы получить информацию об игре в Steam. $game название игры(точно такое "
+                          "же как в Steam)\n "
+                    )
     await ctx.send(embed=embed)
 
 
