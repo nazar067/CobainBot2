@@ -100,16 +100,16 @@ async def stop(ctx):
     else:
         if ctx.guild.voice_client.channel == ctx.message.author.voice.channel:
             await ctx.send("Видео остановлено")
-            await SupportCommands.stop(ctx, bot)
+            await Replay.stop_replay(ctx, bot)
         else:
             await ctx.send('Бот находится в другом канале')
 
 
-@bot.command()
-@commands.cooldown(1, 2, commands.BucketType.user)
-async def stop_replay(ctx):
-    await DevCommands.write_logs(ctx, "stop_replay")
-    await Replay.stop_replay(ctx, bot)
+# @bot.command()
+# @commands.cooldown(1, 2, commands.BucketType.user)
+# async def stop_replay(ctx):
+#     await DevCommands.write_logs(ctx, "stop_replay")
+#     await Replay.stop_replay(ctx, bot)
 
 
 @bot.command()
