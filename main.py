@@ -1,3 +1,4 @@
+import os
 import asyncio
 
 import discord
@@ -20,6 +21,7 @@ with open('source.json') as file:
     source = json.load(file)
     key = source['token'][0]['key']
 
+os.environ.setdefault('SPONSORBLOCK_USER_ID', '4c9hg5xs7hjfg3gs7')
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)

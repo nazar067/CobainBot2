@@ -6,12 +6,13 @@ import json
 
 from asyncio import sleep
 from youtube_search import YoutubeSearch
+from . import utils
 
 # from youtube_dl import YoutubeDL
 
 FFMPEG_OPTIONS = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn'
+    'options': '-vn -bufsize 16M'
 }
 YDL_OPTIONS = {
     'format': 'bestaudio/best',
@@ -49,7 +50,22 @@ async def search_url(ctx, url, vc):
         #await ctx.send(e)
         return
     Url = info['url']
-    vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **FFMPEG_OPTIONS))
+
+    # SponsorBlock integration
+    ffmpeg_options = FFMPEG_OPTIONS.copy()
+    segments = utils.get_skip_segments(info.get('id'))
+
+    if segments is not None:
+        if ffmpeg_options.get('options') is None:
+            ffmpeg_options['options'] = ''
+        else:
+            ffmpeg_options['options'] += ' '
+
+        opts = utils.get_ffmpeg_sponsor_filter(segments, info.get('duration'))
+        ffmpeg_options['options'] += opts
+
+
+    vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **ffmpeg_options))
     await ctx.send("Проигрываю видео: " + info.get('title', None) + " " + "(" + url + ")")
     while vc.is_playing():
         await sleep(1)
