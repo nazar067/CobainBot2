@@ -11,7 +11,7 @@ from youtube_search import YoutubeSearch
 
 FFMPEG_OPTIONS = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn'
+    'options': '-vn -bufsize 16M'
 }
 YDL_OPTIONS = {
     'format': 'bestaudio/best',
@@ -68,10 +68,24 @@ async def search_url(ctx, url, vc):
         return
     Url = info['url']
     await ctx.send("Проигрываю видео: " + info.get('title', None) + " " + "(" + url + ")")
+
+    # SponsorBlock integration
+    ffmpeg_options = FFMPEG_OPTIONS.copy()
+    segments = utils.get_skip_segments(info.get('id'))
+
+    if segments is not None:
+        if ffmpeg_options.get('options') is None:
+            ffmpeg_options['options'] = ''
+        else:
+            ffmpeg_options['options'] += ' '
+
+        opts = utils.get_ffmpeg_sponsor_filter(segments, info.get('duration'))
+        ffmpeg_options['options'] += opts
+
     while True:
         if server_id in is_running and not is_running[server_id]:
             break
-        vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **FFMPEG_OPTIONS))
+        vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **ffmpeg_options))
         while vc.is_playing():
             await asyncio.sleep(1)
         vc.stop()
