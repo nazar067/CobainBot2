@@ -62,7 +62,7 @@ async def search_url(ctx, url, vc):
             ffmpeg_options['options'] += ' '
 
         opts = utils.get_ffmpeg_sponsor_filter(segments, info.get('duration'))
-        ffmpeg_options['options'] += ' ' + opts
+        ffmpeg_options['options'] += opts
 
 
     vc.play(discord.FFmpegPCMAudio(executable=ffpeg_path, source=Url, **ffmpeg_options))
