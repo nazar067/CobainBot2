@@ -4,6 +4,7 @@ import os
 import datetime
 import mimetypes
 import tempfile
+import time
 
 import discord
 import requests
@@ -90,43 +91,48 @@ async def get_logs(ctx, *date):
 
 
 async def get(ctx, url: str):
-    REQUEST_TIMEOUT = 10
+    REQUEST_TIMEOUT = 5
 
-    # Make request
-    try:
-        resp = requests.get(url, timeout=REQUEST_TIMEOUT)
-
-    except requests.exceptions.Timeout:
-        await ctx.send('Превышено время ожидания ответа от сервера')
-        return
-
-    except requests.exceptions.RequestException as e:
-        await ctx.send(str(e))
-        return
-
-    if len(resp.content) > 8 * 1024 * 1024:
-        await ctx.send('Файл слишком большой')
-        return
-
-    # Get file extension
-    content_type = resp.headers.get('Content-Type')
-
-    if content_type is None:
-        ext = '.txt'
-    else:
-        mime = content_type.split(';')[0]
-        ext = mimetypes.guess_extension(mime)
-        if ext is None:
-            ext = '.txt'
-
-    # Send as text if it's text
-    if mime.startswith('text/') and len(resp.text) < 2000:
-        await ctx.send(resp.text)
-        return
-
-    # Send as file
     with tempfile.TemporaryFile() as f:
-        f.write(resp.content)
-        f.seek(0)
+        # Make request
+        try:
+            resp = requests.get(url, stream=True, timeout=REQUEST_TIMEOUT)
 
+            # Save response directly to file. Needed to prevent memory overflow
+            start = time.time()
+            for chunk in resp.iter_content(chunk_size=8192):
+                if time.time() - start > REQUEST_TIMEOUT:
+                    await ctx.send('Слишком долгий запрос')
+                    return
+
+                f.write(chunk)
+            f.seek(0)
+
+        except requests.exceptions.RequestException as e:
+            await ctx.send(str(e))
+            return
+
+        # Don't send files over 8 MB
+        if f.tell() > 8 * 1024 * 1024:
+            await ctx.send('Файл слишком большой')
+            return
+
+        # Get file extension
+        content_type = resp.headers.get('Content-Type')
+
+        if content_type is None:
+            ext = '.txt'
+        else:
+            mime = content_type.split(';')[0]
+            ext = mimetypes.guess_extension(mime)
+            if ext is None:
+                ext = '.txt'
+
+        # Send as text if it's text
+        blank_text_types = ['text/plain']
+        if mime in blank_text_types and f.tell() < 2000:
+            await ctx.send(f.read().decode('utf-8'))
+            return
+
+        # Send as file
         await ctx.send(file=discord.File(f.file, 'file' + ext))
