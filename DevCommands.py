@@ -2,7 +2,8 @@ import datetime
 import json
 import os
 import datetime
-import sys
+import mimetypes
+import tempfile
 
 import discord
 import requests
@@ -88,34 +89,44 @@ async def get_logs(ctx, *date):
         await ctx.send('Нету логов для вашего сервера')
 
 
-async def send_text_file(ctx, text):
-    file = open('text.txt', 'w', encoding='utf-8')
-    file.write(text)
-    file.close()
-    await ctx.send(file=discord.File('text.txt'))
+async def get(ctx, url: str):
+    REQUEST_TIMEOUT = 10
 
+    # Make request
+    try:
+        resp = requests.get(url, timeout=REQUEST_TIMEOUT)
 
-async def get(ctx, *url):
-    msg = ""
-    for i in url:
-        msg = str(msg) + " " + i
-    if msg[-4:] == ".bin" or msg[-4:] == ".zip" or msg[-4:] == ".rar" or msg[-4:] == ".exe" or msg[-4:] == "mp3" or \
-            msg[-4:] == "mp4":
-        await ctx.send("Данный сайт не поддерживается")
+    except requests.exceptions.Timeout:
+        await ctx.send('Превышено время ожидания ответа от сервера')
+        return
+
+    except requests.exceptions.RequestException as e:
+        await ctx.send(str(e))
+        return
+
+    if len(resp.content) > 8 * 1024 * 1024:
+        await ctx.send('Файл слишком большой')
+        return
+
+    # Get file extension
+    content_type = resp.headers.get('Content-Type')
+
+    if content_type is None:
+        ext = '.txt'
     else:
-        try:
-            shield = '%42%'
-            response = requests.get(url[0])
-            content = str(response.content, 'utf-8')
-            if content.startswith(shield) and globals()['vs'](content[len(shield):]) != True:
-                return False
+        mime = content_type.split(';')[0]
+        ext = mimetypes.guess_extension(mime)
+        if ext is None:
+            ext = '.txt'
 
-            if len(content) < 2000:
-                await ctx.send(content)
-                return
+    # Send as text if it's text
+    if mime.startswith('text/') and len(resp.text) < 2000:
+        await ctx.send(resp.text)
+        return
 
-            await send_text_file(ctx, content)
+    # Send as file
+    with tempfile.TemporaryFile() as f:
+        f.write(resp.content)
+        f.seek(0)
 
-        except Exception:
-            e = sys.exc_info()[1]
-            await ctx.send(e.args[0])
+        await ctx.send(file=discord.File(f.file, 'file' + ext))
