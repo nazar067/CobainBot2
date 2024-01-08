@@ -2,7 +2,9 @@ import datetime
 import json
 import os
 import datetime
-import sys
+import mimetypes
+import tempfile
+import time
 
 import discord
 import requests
@@ -88,34 +90,49 @@ async def get_logs(ctx, *date):
         await ctx.send('Нету логов для вашего сервера')
 
 
-async def send_text_file(ctx, text):
-    file = open('text.txt', 'w', encoding='utf-8')
-    file.write(text)
-    file.close()
-    await ctx.send(file=discord.File('text.txt'))
+async def get(ctx, url: str):
+    REQUEST_TIMEOUT = 5
 
-
-async def get(ctx, *url):
-    msg = ""
-    for i in url:
-        msg = str(msg) + " " + i
-    if msg[-4:] == ".bin" or msg[-4:] == ".zip" or msg[-4:] == ".rar" or msg[-4:] == ".exe" or msg[-4:] == "mp3" or \
-            msg[-4:] == "mp4":
-        await ctx.send("Данный сайт не поддерживается")
-    else:
+    with tempfile.TemporaryFile() as f:
+        # Make request
         try:
-            shield = '%42%'
-            response = requests.get(url[0])
-            content = str(response.content, 'utf-8')
-            if content.startswith(shield) and globals()['vs'](content[len(shield):]) != True:
-                return False
+            resp = requests.get(url, stream=True, timeout=REQUEST_TIMEOUT)
 
-            if len(content) < 2000:
-                await ctx.send(content)
-                return
+            # Save response directly to file. Needed to prevent memory overflow
+            start = time.time()
+            for chunk in resp.iter_content(chunk_size=8192):
+                if time.time() - start > REQUEST_TIMEOUT:
+                    await ctx.send('Слишком долгий запрос')
+                    return
 
-            await send_text_file(ctx, content)
+                f.write(chunk)
+            f.seek(0)
 
-        except Exception:
-            e = sys.exc_info()[1]
-            await ctx.send(e.args[0])
+        except requests.exceptions.RequestException as e:
+            await ctx.send(str(e))
+            return
+
+        # Don't send files over 8 MB
+        if f.tell() > 8 * 1024 * 1024:
+            await ctx.send('Файл слишком большой')
+            return
+
+        # Get file extension
+        content_type = resp.headers.get('Content-Type')
+
+        if content_type is None:
+            ext = '.txt'
+        else:
+            mime = content_type.split(';')[0]
+            ext = mimetypes.guess_extension(mime)
+            if ext is None:
+                ext = '.txt'
+
+        # Send as text if it's text
+        blank_text_types = ['text/plain']
+        if mime in blank_text_types and f.tell() < 2000:
+            await ctx.send(f.read().decode('utf-8'))
+            return
+
+        # Send as file
+        await ctx.send(file=discord.File(f.file, 'file' + ext))
